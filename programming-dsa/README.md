@@ -71,3 +71,88 @@ Explanation: Intervals [1,4] and [4,5] are considered overlapping.
 **Note:** array `intervals` will have length at least 1.
 
 Solution [link](https://github.com/ShivKJ/practice/blob/master/leetcode/problem56.py).
+
+### Medium
+
+#### Minimise Cost
+
+There are `n` tasks and cost to complete `ith` task is `costs[i]` where `costs` is array of numbers of size `n`
+and `0 <= i < n`.
+
+If first tasks is picked then all the other tasks have to be completed, otherwise at least one of the tasks should be
+left. Return an array `x` of numbers, containing `0` or `1` of size `n` where `x[i] = 1` means `ith` task is picked,
+such that total cost incurred for picked tasks is minimum.
+
+```python
+from typing import List
+
+
+def min_cost(costs: List[float]) -> List[int]:
+    """
+    let n = len(costs) and x[i] is binary variable 0 <= i < n
+
+    minimise: sum(costs[i] * x[i] for i in range(n))
+
+    constraint: x[0] = x[1] * x[2] * ... * x[n-1]
+
+    :param costs:
+    :return:
+    """
+    n = len(costs)
+
+    if n < 2:
+        raise ValueError(f'number of elements in array can '
+                         f'not be less than 2, given array size={n}')
+
+    x = [0] * n
+    rest_costs = costs[1:]
+
+    # we branch on the variable x[0]. It can take two values
+    # if x = 1
+    #   it means x[1], ..., x[n - 1] must all be 1. So objective function
+    #   value for this configuration, obj1 = sum(costs)
+    obj1 = sum(costs)
+
+    # otherwise (i.e. x = 0),
+    #   we need to set value of at least one of the variables to 0 apart from x[0].
+    #   But which one to choose?
+
+    #   Defining rest_costs = costs[1:]
+    #
+    #   As we want to minimise the objective function, so we will want to keep as
+    #   many negative numbers, from rest_costs, as possible.
+    #
+    #   Ofcourse, we can not keep all the numbers from costs, because it will make
+    #   solution infeasible. So in case when all the numbers in rest_costs are negative,
+    #   then finding the largest cost and setting value for its corresponding variable to 0
+    obj2 = sum(c for c in rest_costs if c < 0)
+    max_cost_idx_in_rest_costs = None
+
+    if all_negative := all(e < 0 for e in rest_costs):
+        max_cost_idx_in_rest_costs = rest_costs.index(max(rest_costs))
+        obj2 -= rest_costs[max_cost_idx_in_rest_costs]  # so, x[1 + max_cost_idx_in_rest_costs] = 0
+    # ------------------------------------------------------------------------------
+
+    # constructing output
+    if obj1 <= obj2:
+        # case for x[0] = 1 and hence x[1],...x[n-1] all should be 1
+        for i in range(n):
+            x[i] = 1
+    else:
+        # case for x[0] = 0
+
+        for i, c in enumerate(costs):
+            x[i] = int(c < 0)
+
+        x[0] = 0
+
+        if all_negative:
+            # in the above loop, we will have set x[1:] to 1, which will break
+            # feasibility of solution, so setting x[1 + max_cost_idx_in_rest_costs] = 0.
+            # (max_cost_idx_in_rest_costs is defined and not None)
+            # Note that: we are adding 1 to max_cost_idx_in_rest_costs
+            # as max_cost_idx_in_rest_costs is defined in rest_costs array.
+            x[1 + max_cost_idx_in_rest_costs] = 0
+
+    return x
+```
