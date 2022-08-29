@@ -170,3 +170,74 @@ Explanation: The longest increasing subsequence is [2,3,7,101], therefore the le
 ```
 
 Solution [link](https://github.com/ShivKJ/practice/blob/master/leetcode/problem300.py)
+
+#### [Max points on a line](https://leetcode.com/problems/max-points-on-a-line/)
+
+Given an array of points where `points[i] = [xi, yi]` represents a point on the X-Y plane, return the maximum number of
+points that lie on the same straight line.
+
+Solution [link](https://github.com/ShivKJ/practice/blob/master/leetcode/problem149.py)
+
+```python
+from collections import Counter
+from math import gcd
+from typing import List, Tuple
+
+
+def dx_dy_of_slope(x1, y1, x2, y2) -> Tuple[int, int]:
+    """
+    let dx = x2 - x1 and dy = y2 - y1 (given that both dx and dy can not be zero)
+
+    if dx ! =0 :
+        slope = dy / dx
+              = -dy / -dx
+              = (dy / gcd(dx, dy)) / (dx / gcd(dx, dy))
+
+    As a convention, if dx = 0 then |dy| -> dy
+
+    :param x1:
+    :param y1:
+    :param x2:
+    :param y2:
+    :return:
+    """
+    dx, dy = x2 - x1, y2 - y1
+
+    d = gcd(dx, dy)  # d > 0
+    dx, dy = dx // d, dy // d
+
+    if dx < 0 or (dx == 0 and dy < 0):
+        dx, dy = -dx, -dy
+
+    return dx, dy
+
+
+class Solution:
+    def maxPoints(self, points: List[List[int]]) -> int:
+        if (n := len(points)) < 3:
+            return n
+
+        output = 0
+
+        for i, (x1, y1) in enumerate(points):
+            if n - i < output:  # n - i + 1 <= output, so even if all the
+                # points i, i + 1, .. n - 1 lie on the line, it will be less than output.
+                # Note that: this "if" condition is not required theoretically
+                break
+
+            same_slope_cnt = Counter()  # lines passing through (x1, y1) with different slopes are counted
+            max_points_on_same_slope = 0
+
+            for j in range(i + 1, n):
+                x2, y2 = points[j]
+                dx_dy = dx_dy_of_slope(x1, y1, x2, y2)
+
+                same_slope_cnt[dx_dy] += 1
+                max_points_on_same_slope = max(max_points_on_same_slope, same_slope_cnt[dx_dy])
+
+            max_points_on_same_slope += 1  # +1 for considering ith point
+
+            output = max(output, max_points_on_same_slope)
+
+        return output
+```
