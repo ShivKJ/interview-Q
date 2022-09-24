@@ -241,3 +241,55 @@ class Solution:
 
         return output
 ```
+
+#### [Paths from root to leaf](https://leetcode.com/problems/path-sum-ii/)
+
+Given the `root` of a binary tree and an integer `target_sum`, return all root-to-leaf paths where the sum of the node
+values in the path equals target_sum.
+
+Each path should be returned as a list of the node values, not node references. A root-to-leaf path is a path starting
+from the root and ending at any leaf node. A leaf is a node with no children.
+
+![img.png](data/images/leetcode113_1.png)
+
+```python
+from collections import deque
+from typing import List, Optional
+
+
+class TreeNode:
+    def __init__(self, x: int):
+        self.val = x
+        self.left: Optional['TreeNode'] = None
+        self.right: Optional['TreeNode'] = None
+
+
+def is_leaf(rt: TreeNode) -> bool:
+    return rt.left is None and rt.right is None
+
+
+class Solution:
+    def pathSum(self, root: Optional[TreeNode], target: int) -> List[List[int]]:
+        output, path = [], deque()
+
+        def dfs(rt: Optional[TreeNode], path_sum: int):
+            if rt is not None:
+                path.append(rt.val)
+
+                # ----------------------------------------------
+                path_sum += rt.val
+
+                if is_leaf(rt):
+                    if path_sum == target:
+                        output.append(list(path))
+                else:
+                    dfs(rt.left, path_sum)
+                    dfs(rt.right, path_sum)
+                # ----------------------------------------------
+
+                path.pop()
+
+        dfs(root, 0)
+
+        return output
+```
